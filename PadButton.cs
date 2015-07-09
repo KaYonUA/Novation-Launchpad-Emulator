@@ -11,16 +11,48 @@ using System.Windows.Forms;
 namespace GUI_MIDI
 {
     public delegate void pButtonHandler(object sender, MouseEventArgs e);
+    public delegate void pSetButtonHendler(int Key, int ID);
     public partial class PadButton : UserControl
     {
         public int ID = 0;
         public event pButtonHandler mouseDown;
-        public event pButtonHandler mouseUp;  
+        public event pButtonHandler mouseUp;
+
+        public event pSetButtonHendler keyChanged;
         public PadButton()
         {
             InitializeComponent();
             this.label1.MouseDown += new MouseEventHandler(onLabelMouseDown);
             this.label1.MouseUp += new MouseEventHandler(onLabelMouseUp);
+            this.textBox1.KeyDown += new KeyEventHandler(onEnterPress);
+            this.setKeyToolStripMenuItem.Click += new EventHandler(onsetClick);
+            this.resetToolStripMenuItem.Click += new EventHandler(onresetClick);
+        }
+        private void onresetClick(object sender, EventArgs e)
+        {
+            if (keyChanged != null)
+                keyChanged(label1.Text[0], 0);
+            this.label1.Text = "";
+        }
+
+        private void onsetClick(object sender, EventArgs e)
+        {
+            this.textBox1.Visible = true;
+            this.textBox1.Focus();
+        }
+        private void onEnterPress(object sender, KeyEventArgs e)
+        {
+            if(e.KeyValue == 13)
+            {
+                if ((sender as TextBox).Text.Length == 1)
+                {
+                    label1.Text = (sender as TextBox).Text;
+                    (sender as TextBox).Visible = false;
+                    if (keyChanged != null)
+                        keyChanged(label1.Text[0], ID+1);
+                }
+                else MessageBox.Show("Write one letter.", "Error");
+            }
         }
 
         private void onLabelMouseDown(object sender, MouseEventArgs e)
@@ -47,6 +79,11 @@ namespace GUI_MIDI
             {
                 return contextMenuStrip1;
             }
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        {
+
         }
     }
 }

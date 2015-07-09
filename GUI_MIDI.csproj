@@ -36,10 +36,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AlphaForm">
-      <HintPath>..\..\..\..\Desktop\AlphaForm_1_1_3\bin\Debug\AlphaForm.dll</HintPath>
+      <HintPath>..\..\Desktop\AlphaForm_1_1_3\bin\Debug\AlphaForm.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
-      <HintPath>..\gui\NAudio.dll</HintPath>
+      <HintPath>..\Visual Studio 2013\Projects\gui\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -36,27 +36,6 @@ namespace GUI_MIDI
 
             _launch = new Launchpad(1);
             kmap = new KeyMap();
-
-            kmap.mapKey('Z', 57);
-            kmap.mapKey('X', 58);
-            kmap.mapKey('C', 59);
-            kmap.mapKey('V', 60);
-            kmap.mapKey('S', 18);
-            kmap.mapKey('D', 19);
-            kmap.mapKey('E', 11);
-            kmap.mapKey('N', 60);
-            kmap.mapKey('O', 40);
-            kmap.mapKey('I', 39);
-            kmap.mapKey('U', 38);
-            kmap.mapKey('Y', 37);
-            kmap.mapKey('T', 36);
-            kmap.mapKey('6', 45);
-            kmap.mapKey('H', 53);
-            kmap.mapKey('J', 46);
-            kmap.mapKey('7', 30);
-            kmap.mapKey('8', 31);
-            kmap.mapKey('9', 32);
-            kmap.mapKey('K', 47);
             
             InitializeComponent();
             buttons = new PadButton[64];
@@ -76,6 +55,7 @@ namespace GUI_MIDI
                 this.buttons[i].TabStop = false;
                 this.buttons[i].mouseDown += new pButtonHandler(this.mouseP);
                 this.buttons[i].mouseUp += new pButtonHandler(this.mouseR);
+                this.buttons[i].keyChanged += new pSetButtonHendler(this.onKeySet);
                 this.alphaFormTransformer1.Controls.Add(this.buttons[i]);
             }
             this.KeyPreview = true;
@@ -84,14 +64,23 @@ namespace GUI_MIDI
         }
 
         void Form1_keyUp(object sender, KeyEventArgs e)
-        {
-            _launch.stopPlayingNote(kmap.getNote(e.KeyValue));
-            buttons[kmap.getNote(e.KeyValue)].button.BackColor = System.Drawing.Color.LightGray;
+        { 
+            int buttonNo = kmap.getNote(e.KeyValue);
+            if (buttonNo != -1)
+            {
+                _launch.stopPlayingNote(buttonNo);
+                buttons[buttonNo].button.BackColor = System.Drawing.Color.LightGray;
+            }
         }
         void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            _launch.startPlayingNote(kmap.getNote(e.KeyValue));
-            buttons[kmap.getNote(e.KeyValue)].button.BackColor = System.Drawing.Color.Orange;
+            Console.WriteLine("Key pressed: " + e.KeyValue);
+            int buttonNo = kmap.getNote(e.KeyValue);
+            if (buttonNo != -1)
+            {
+                _launch.startPlayingNote(buttonNo);
+                buttons[buttonNo].button.BackColor = System.Drawing.Color.Orange;
+            }
         }
 
         private void InitializeComponent()
@@ -185,6 +174,12 @@ namespace GUI_MIDI
                 (sender as PadButton).button.BackColor = System.Drawing.Color.LightGray;
             }
         }
+
+        private void onKeySet(int key, int id)
+        {
+            kmap.mapKey(key, id);
+            Console.WriteLine("Key setted: " + key+",to ID: " + id);
+        }
     }
     class Launchpad
     {
@@ -277,8 +272,8 @@ namespace GUI_MIDI
         {
             if (keyTable[keyValue] == 0)
             {
-                Console.WriteLine("KeyNotMapped");
-                MessageBox.Show("Key Not Mapped!");
+                //Console.WriteLine("KeyNotMapped");
+               // MessageBox.Show("Key Not Mapped!");
                 return -1;
             }
             else
