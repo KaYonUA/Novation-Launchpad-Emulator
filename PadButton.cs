@@ -19,7 +19,7 @@ namespace GUI_MIDI
         public event pButtonHandler mouseUp;
 
         public event pSetButtonHendler keyChanged;
-        public PadButton()
+        public PadButton(int ID)
         {
             InitializeComponent();
             this.label1.MouseDown += new MouseEventHandler(onLabelMouseDown);
@@ -27,6 +27,8 @@ namespace GUI_MIDI
             this.textBox1.KeyDown += new KeyEventHandler(onEnterPress);
             this.setKeyToolStripMenuItem.Click += new EventHandler(onsetClick);
             this.resetToolStripMenuItem.Click += new EventHandler(onresetClick);
+            this.label2.Text = (this.ID = ID).ToString();
+            this.label2.BackColor = Color.Transparent;
         }
         private void onresetClick(object sender, EventArgs e)
         {
@@ -78,6 +80,14 @@ namespace GUI_MIDI
             get
             {
                 return contextMenuStrip1;
+            }
+        }
+
+        public Color color
+        {
+            set
+            {
+                this.label1.BackColor = this.label2.BackColor = value;
             }
         }
 
