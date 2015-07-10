@@ -19,6 +19,8 @@ namespace GUI_MIDI
         private AlphaFormTransformer alphaFormTransformer1;
         private AlphaFormMarker alphaFormMarker1;
         public PadButton[] buttons;
+        private Button button3;
+        private Button button2;
 
         private Button button1;
 
@@ -29,18 +31,39 @@ namespace GUI_MIDI
         {
 
             Application.EnableVisualStyles();
-            Application.Run(new Program());
+            Program prog = new Program();
+            if (prog.midiin == null && prog._launch == null)
+            {
+                MessageBox.Show(prog, "Driver not found!", "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            Application.Run(prog);
         }
         public Program()
         {
             this.AutoSize = true;
-
-            _launch = new Launchpad(1);
             kmap = new KeyMap();
-
-            midiin = new MidiIn(2);
-            midiin.Start();
-            midiin.MessageReceived += new EventHandler<MidiInMessageEventArgs>(midiEffectsIn);
+            for (int i = 0; i < MidiIn.NumberOfDevices;i++)
+            {
+                if (MidiIn.DeviceInfo(i).ProductName == "Launchpad Emulator")
+                {
+                    midiin = new MidiIn(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < MidiOut.NumberOfDevices; i++)
+            {
+                if (MidiOut.DeviceInfo(i).ProductName == "Launchpad Emulator")
+                {
+                    _launch = new Launchpad(i); 
+                    break;
+                }
+            }
+            if (midiin != null && _launch != null)
+            {
+                midiin.Start();
+                midiin.MessageReceived += new EventHandler<MidiInMessageEventArgs>(midiEffectsIn);
+            }
             
             InitializeComponent();
             this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
@@ -95,6 +118,8 @@ namespace GUI_MIDI
             this.alphaFormTransformer1 = new AlphaForm.AlphaFormTransformer();
             this.button1 = new System.Windows.Forms.Button();
             this.alphaFormMarker1 = new AlphaForm.AlphaFormMarker();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.alphaFormTransformer1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -102,6 +127,8 @@ namespace GUI_MIDI
             // 
             this.alphaFormTransformer1.BackgroundImage = global::GUI_MIDI.Properties.Resources.LaunchpadPro;
             this.alphaFormTransformer1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.alphaFormTransformer1.Controls.Add(this.button3);
+            this.alphaFormTransformer1.Controls.Add(this.button2);
             this.alphaFormTransformer1.Controls.Add(this.button1);
             this.alphaFormTransformer1.Controls.Add(this.alphaFormMarker1);
             this.alphaFormTransformer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -124,10 +151,28 @@ namespace GUI_MIDI
             // alphaFormMarker1
             // 
             this.alphaFormMarker1.FillBorder = ((uint)(4u));
-            this.alphaFormMarker1.Location = new System.Drawing.Point(311, 313);
+            this.alphaFormMarker1.Location = new System.Drawing.Point(287, 331);
             this.alphaFormMarker1.Name = "alphaFormMarker1";
             this.alphaFormMarker1.Size = new System.Drawing.Size(17, 17);
             this.alphaFormMarker1.TabIndex = 0;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(462, 579);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(44, 23);
+            this.button2.TabIndex = 3;
+            this.button2.Text = "Save";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(410, 579);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(46, 23);
+            this.button3.TabIndex = 4;
+            this.button3.Text = "Load";
+            this.button3.UseVisualStyleBackColor = true;
             // 
             // Program
             // 
@@ -178,7 +223,7 @@ namespace GUI_MIDI
         private void onKeySet(int key, int id)
         {
             kmap.mapKey(key, id);
-            Console.WriteLine("Key setted: " + key+",to ID: " + id);
+            Console.WriteLine("Key setted: " + key + ",to ID: " + id);
         }
 
         private void midiEffectsIn(object sender, MidiInMessageEventArgs e)
@@ -187,20 +232,20 @@ namespace GUI_MIDI
             {
                 if (e.MidiEvent.CommandCode == MidiCommandCode.NoteOn)
                 {
-                    if ((e.MidiEvent as NoteOnEvent).NoteNumber <= 99)
+                    if ((e.MidiEvent as NoteOnEvent).NoteNumber <= 99 && (e.MidiEvent as NoteOnEvent).NoteNumber >= 36)
                     {
                         NoteOnEvent ev = (NoteOnEvent)e.MidiEvent;
                         int velosity = ev.Velocity;
                         int red = ev.Velocity & 0x3;
                         int green = ev.Velocity & 0x30;
                         green = green >> 4;
+                        //Console.WriteLine()
                         buttons[Launchpad.getButtonNo(ev.NoteNumber)].color = System.Drawing.Color.FromArgb(red * 78, green * 78, 0);
-
                     }
                 }
                 if (e.MidiEvent.CommandCode == MidiCommandCode.NoteOff)
                 {
-                    if ((e.MidiEvent as NoteEvent).NoteNumber <= 99)
+                    if ((e.MidiEvent as NoteEvent).NoteNumber <= 99 && (e.MidiEvent as NoteEvent).NoteNumber >= 36)
                         buttons[Launchpad.getButtonNo((e.MidiEvent as NoteEvent).NoteNumber)].color = System.Drawing.Color.FromArgb(170, 170, 170);
                    // Console.WriteLine("Light Off button No. " + Launchpad.getButtonNo(notee.NoteNumber));
                 }
@@ -268,11 +313,14 @@ namespace GUI_MIDI
 
         static public int getButtonNo(int note)
         {
-            
-                if (note <= lColumnMax)
-                    return 8 * ((lColumnMax - note) / 4) + (3 - ((lColumnMax - note) % 4));
-                else
-                    return 8 * ((rColumnMax - note) / 4) + (7 - ((rColumnMax - note) % 4));
+            //if (note == lColumnMax)
+            //    return 3;
+            //if (note == rColumnMax)
+            //    return 63;
+            if (note <= lColumnMax)
+                return 8 * ((lColumnMax - note) / 4) + (3 - ((lColumnMax - note) % 4));
+            else
+                return 8 * ((rColumnMax - note) / 4) + (7 - ((rColumnMax - note) % 4));
         }
 
         public void startPlayingNote(int buttonNo)
