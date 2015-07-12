@@ -63,49 +63,9 @@ namespace GUI_MIDI.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap greenbutton {
+        internal static System.Drawing.Bitmap LaunchpadBig {
             get {
-                object obj = ResourceManager.GetObject("greenbutton", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap LaunchpadPro {
-            get {
-                object obj = ResourceManager.GetObject("LaunchpadPro", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap LaunchpadPro_buttons {
-            get {
-                object obj = ResourceManager.GetObject("LaunchpadPro buttons", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap notransparent {
-            get {
-                object obj = ResourceManager.GetObject("notransparent", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap redbutton {
-            get {
-                object obj = ResourceManager.GetObject("redbutton", resourceCulture);
+                object obj = ResourceManager.GetObject("LaunchpadBig", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
