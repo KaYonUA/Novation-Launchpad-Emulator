@@ -85,7 +85,8 @@ namespace GUI_MIDI
             if (checkButton(buttonNo) && noteStatus[buttonNo] == false)
             {
                 // while(true)
-                midiout.Send(MidiMessage.StartNote(getButtonNote(buttonNo), 127, 1).RawData);
+                midiout.Send(MidiMessage.StartNote(getButtonNote(buttonNo), 127, 5).RawData);
+                //Program.port.sendCommand(BitConverter.GetBytes(MidiMessage.StartNote(getButtonNote(buttonNo), 127, 1).RawData));
                 //Console.WriteLine("Note: " + getButtonNote(buttonNo) + " start play.");
                 noteStatus[buttonNo] = true;
             }
@@ -94,7 +95,8 @@ namespace GUI_MIDI
         {
             if (checkButton(buttonNo) && noteStatus[buttonNo] == true)
             {
-                midiout.Send(MidiMessage.StopNote(getButtonNote(buttonNo), 0, 1).RawData);
+                midiout.Send(MidiMessage.StopNote(getButtonNote(buttonNo), 0, 5).RawData);
+                //Program.port.sendCommand(BitConverter.GetBytes(MidiMessage.StopNote(getButtonNote(buttonNo), 0, 1).RawData));
                 //Console.WriteLine("Note: " + getButtonNote(buttonNo) + " stop play.");
                 noteStatus[buttonNo] = false;
             }

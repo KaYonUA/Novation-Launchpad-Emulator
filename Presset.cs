@@ -7,86 +7,172 @@ using System.IO;
 
 namespace GUI_MIDI
 {
+    struct PresetPart
+    {
+        public KeyMap keyMap;
+        public string[] bLabels;
+
+        static public int labelDataSize = 72 * 3;
+        static public int keyDataSize = 72 * 4;
+        public byte[] packData
+        {
+            get
+            {
+                byte[] data = new byte[labelDataSize + keyDataSize];
+                int dIndex = 0;
+
+                for (int i = 0; i < 72; i++)
+                {
+                    byte[] temp;
+                    switch(bLabels[i].Length)
+                    {
+                        case 0:
+                            data[dIndex] = 0;
+                            data[dIndex + 1] = 0;
+                            data[dIndex + 2] = 0;
+                            break;
+                        case 1:
+                            data[dIndex] = Encoding.Default.GetBytes(bLabels[i])[0];
+                            data[dIndex + 1] = 0;
+                            data[dIndex + 2] = 0;
+                            break;
+                        case 2:
+                            temp = Encoding.Default.GetBytes(bLabels[i]);
+                            data[dIndex] = temp[0];
+                            data[dIndex + 1] = temp[1];
+                            data[dIndex + 2] = 0;
+                            break;
+                        case 3:
+                            temp = Encoding.Default.GetBytes(bLabels[i]);
+                            data[dIndex] = temp[0];
+                            data[dIndex + 1] = temp[1];
+                            data[dIndex + 2] = temp[2];
+                            break;
+                        default:
+                            break;
+                    }
+                    dIndex += 3;
+                }
+
+                Dictionary<int, int>.KeyCollection keyValues = keyMap.indexes.Keys;
+                int[] keys = new int[72];
+                foreach (var keyval in keyValues)
+                    keys[keyMap.indexes[keyval] - 1] = keyval;
+
+                byte[] buffer;
+                foreach (var keyValue in keys)
+                {
+                    buffer = BitConverter.GetBytes(keyValue);
+
+                    data[dIndex] = buffer[0];
+                    data[dIndex + 1] = buffer[1];
+                    data[dIndex + 2] = buffer[2];
+                    data[dIndex + 3] = buffer[3]; 
+
+                    dIndex += 4;
+                }
+
+                return data;
+            }
+            set
+            {
+                keyMap.indexes.Clear();
+                keyMap.keys.Clear();
+
+                int dIndex = 0;
+                byte[] buffer = new byte[3];
+                for (int i = 0; i < 72; i++)
+                {
+                    buffer[0] = value[dIndex];
+                    buffer[1] = value[dIndex + 1];
+                    buffer[2] = value[dIndex + 2];
+
+                    bLabels[i] = Encoding.Default.GetString(buffer);
+                    Console.WriteLine(bLabels[i]);
+
+                    dIndex += 3;
+                }
+                
+
+                int keyValue;
+                buffer = new byte[4];
+                for (int i = 0; i < 72; i++)
+                {
+                    buffer[0] = value[dIndex];
+                    buffer[1] = value[dIndex + 1];
+                    buffer[2] = value[dIndex + 2];
+                    buffer[3] = value[dIndex + 3];
+
+                    keyValue = BitConverter.ToInt32(buffer, 0);
+                    if (keyValue != 0)
+                        keyMap.mapKey(keyValue, i + 1);
+
+                    dIndex += 4;
+                }
+            }
+        }
+        public PresetPart(int buttonsCount)
+        {
+            keyMap = new KeyMap();
+            bLabels = new string[buttonsCount];
+            for (int i = 0; i < buttonsCount; i++)
+                bLabels[i] = " ";
+        }
+        
+        
+    }
     class Presset
     {
-        public KeyMap kmap;
-        public string[] bLabels;
-        public string currentPresetName;
-        public Presset()
+        PresetPart[] part;
+        int pIndex;
+        public int buttonsCount{ get; private set; }
+        public int partsCount{ get; private set; }
+        public PresetPart currentPart { get { return part[pIndex]; } }
+        public PresetPart this[int index]
         {
-            kmap = new KeyMap();
-            bLabels = new string[72];
-            currentPresetName = "";
+            get { return part[index]; }
         }
-        public bool loadFromFile(string filename){
-            currentPresetName = filename;
+        public Presset(int pCount,int bCount)
+        {
+            partsCount = pCount;
+            buttonsCount = bCount;
+            part = new PresetPart[pCount];
+            for (int i = 0; i < pCount;i++ )
+                part[i] = new PresetPart(bCount);
+        }
+        public bool loadFromFile(string filename)
+        {
             using (var br = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read)))
             {
-                for (int i = 0; i < 72; i++)
+                int partSize = PresetPart.labelDataSize + PresetPart.keyDataSize;
+                for (int i = 0; i < this.partsCount; i++)
                 {
-                    bLabels[i] = Encoding.Default.GetString(br.ReadBytes(3));
-                    Console.WriteLine(bLabels[i]);
-                }
-                ///
-                kmap.indexes.Clear();
-                kmap.keys.Clear();
-                ///
-                int[] keys = new int[72];
-                for (int i = 0; i < 72; i++)
-                {
-                    keys[i] = br.ReadInt32();
-                }
-                for (int i = 0; i < 72; i++)
-                {
-                    if(keys[i] != 0)
-                    {
-                        kmap.mapKey(keys[i], i + 1);
-                    }
-                }
+                    byte[] data = new byte[partSize];
+                    br.Read(data, 0, partSize);
+                    part[i].packData = data;
+                } 
             }
             return true;
         }
         public bool saveToFile(string filename)
         {
             BinaryWriter bw = new BinaryWriter(File.Open(filename, FileMode.Create));
-            for (int i = 0; i < 72; i++)
-            {
-                byte[] byts;
-                if (bLabels[i].Length == 0)
-                {
-                    byts = new byte[3];
-                    bw.Write(byts, 0, 3);
-                }
-                else if (bLabels[i].Length == 1)
-                {
-                    byts = new byte[3];
-                    byts[0] = Encoding.Default.GetBytes(bLabels[i])[0];
-                    bw.Write(byts, 0, 3);
-                }
-                else if (bLabels[i].Length == 2)
-                {
-                    byts = new byte[3];
-                    byte[] temp;
-                    temp = Encoding.Default.GetBytes(bLabels[i]);
-                    byts[0] = temp[0];
-                    byts[1] = temp[1];
-                    bw.Write(byts, 0, 3);
-                }
-                else if (bLabels[i].Length == 3)
-                {
-                    byts = Encoding.Default.GetBytes(bLabels[i]);
-                    bw.Write(byts, 0, 3);
-                }
-                
-            }
-            Dictionary<int, int>.KeyCollection keyValues = kmap.indexes.Keys;
-            int[] keys = new int[72];
-            foreach (var keyval in keyValues)
-                keys[kmap.indexes[keyval]-1] = keyval;
-            for (int i = 0; i < 72; i++)
-                bw.Write(keys[i]);
+
+            for (int i = 0; i < this.partsCount; i++)
+                bw.Write(part[i].packData);
+
             bw.Close();
             return true;
+        }
+        public void selectPart(int partIndex)
+        {
+            pIndex = partIndex;
+        }
+        public PresetPart getPart(int index){
+            if (index < partsCount)
+                return part[index];
+            else
+                return new PresetPart(0);
         }
     }
 }
