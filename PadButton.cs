@@ -181,7 +181,7 @@ namespace GUI_MIDI
             {
                 int width = ClientRectangle.Width - 1;
                 int height = ClientRectangle.Height - 1;
-                int radius = 6;
+                int radius = 3;
 
                 gfxPath.AddLine(radius + 1, 1, (width - radius * 2) - 1, 1);
                 gfxPath.AddArc((width - radius * 2) - 1, 1, radius * 2, radius * 2, 270, 90);

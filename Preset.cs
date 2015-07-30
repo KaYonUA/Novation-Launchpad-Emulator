@@ -4,17 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace GUI_MIDI
 {
-    struct PresetPart
+    [StructLayout(LayoutKind.Explicit, Size = 20)]
+    struct PresetHeader
+    {
+        [FieldOffset(0)]
+        public int[] signature;
+        [FieldOffset(12)]
+        public int partsCount;
+        [FieldOffset(16)]
+        public int openedPart;
+    }
+    class PresetPart
     {
         public KeyMap keyMap;
         public string[] bLabels;
 
         static public int labelDataSize = 72 * 3;
         static public int keyDataSize = 72 * 4;
-        public byte[] packData
+        public byte[] partData
         {
             get
             {
@@ -121,7 +132,7 @@ namespace GUI_MIDI
         
         
     }
-    class Presset
+    class Preset
     {
         PresetPart[] part;
         int pIndex;
@@ -132,7 +143,7 @@ namespace GUI_MIDI
         {
             get { return part[index]; }
         }
-        public Presset(int pCount,int bCount)
+        public Preset(int pCount,int bCount)
         {
             partsCount = pCount;
             buttonsCount = bCount;
@@ -140,16 +151,42 @@ namespace GUI_MIDI
             for (int i = 0; i < pCount;i++ )
                 part[i] = new PresetPart(bCount);
         }
+        private static byte[] RawSerialize(object anything)
+        {
+            int rawsize = Marshal.SizeOf(anything);
+            byte[] rawdata = new byte[rawsize];
+            GCHandle handle = GCHandle.Alloc(rawdata, GCHandleType.Pinned);
+            Marshal.StructureToPtr(anything, handle.AddrOfPinnedObject(), false);
+            handle.Free();
+            return rawdata;
+        }
+        private static T ReadStruct<T>(byte[] data)
+        {
+            GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            T temp = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            handle.Free();
+            return temp;
+        }
         public bool loadFromFile(string filename)
         {
             using (var br = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read)))
             {
                 int partSize = PresetPart.labelDataSize + PresetPart.keyDataSize;
+
+                byte[] headerData = new byte[20];
+                br.Read(headerData, 0, 20);
+                PresetHeader header = Preset.ReadStruct<PresetHeader>(headerData);
+                this.partsCount = header.partsCount;
+
+                Console.WriteLine("Signature: " + (char)header.signature[0] + (char)header.signature[1] + (char)header.signature[2]);
+                Console.WriteLine("partsCount: " + header.partsCount);
+                Console.WriteLine("openedPart: " + header.openedPart);
+
                 for (int i = 0; i < this.partsCount; i++)
                 {
                     byte[] data = new byte[partSize];
                     br.Read(data, 0, partSize);
-                    part[i].packData = data;
+                    part[i].partData = data;
                 } 
             }
             return true;
@@ -158,8 +195,17 @@ namespace GUI_MIDI
         {
             BinaryWriter bw = new BinaryWriter(File.Open(filename, FileMode.Create));
 
+            PresetHeader header;
+            header.signature = new int[3] {'l','e','p'};
+            header.openedPart = 0;
+            header.partsCount = this.partsCount;
+
+            bw.Write(Preset.RawSerialize(header));
+
+            Console.WriteLine("Header Length: " + Marshal.SizeOf(header));
+
             for (int i = 0; i < this.partsCount; i++)
-                bw.Write(part[i].packData);
+                bw.Write(part[i].partData);
 
             bw.Close();
             return true;

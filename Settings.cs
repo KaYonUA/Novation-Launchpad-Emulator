@@ -45,7 +45,7 @@ namespace GUI_MIDI
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (this.savePresetDialog.ShowDialog() == DialogResult.OK)
-                Program.mainform.saveButton(openPresetDialog.FileName);
+                Program.mainform.saveButton(savePresetDialog.FileName);
         }
         private void loadButton_Click(object sender, EventArgs e)
         {

@@ -14,7 +14,7 @@ namespace GUI_MIDI
     partial class PadForm : Form
     {
         public Launchpad launchpad;
-        public Presset preset;
+        public Preset preset;
         public MidiIn midiin;
 
         public bool showlables;
@@ -33,7 +33,7 @@ namespace GUI_MIDI
             showlables = false;
             hlButtons = false;
 
-            preset = new Presset(pCount: 8,bCount: 72);
+            preset = new Preset(pCount: 8,bCount: 72);
             for (int i = 0; i < MidiIn.NumberOfDevices; i++)
             {
                 if (MidiIn.DeviceInfo(i).ProductName == "Launchpad Emulator")
