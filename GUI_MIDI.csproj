@@ -43,7 +43,7 @@
       <HintPath>bin\AlphaForm.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
-      <HintPath>..\Visual Studio 2013\Projects\gui\NAudio.dll</HintPath>
+      <HintPath>.\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
