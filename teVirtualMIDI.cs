@@ -316,7 +316,6 @@ namespace TobiasErichsen.teVirtualMIDI {
 	        private static extern Boolean virtualMIDIGetData( IntPtr midiPort, [Out] byte[] midiDataBytes, ref UInt32 length );
         
 	        [DllImport( DllName, EntryPoint = "virtualMIDIGetVersion", SetLastError = true, CharSet = CharSet.Unicode )]
-	        [return: MarshalAs(UnmanagedType.LPWStr)]
 	        private static extern string virtualMIDIGetVersion( ref ushort major, ref ushort minor, ref ushort release, ref ushort build );
 
 	        [DllImport( DllName, EntryPoint = "virtualMIDILogging", SetLastError = true, CharSet = CharSet.Unicode )]

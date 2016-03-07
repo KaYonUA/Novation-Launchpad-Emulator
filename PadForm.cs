@@ -20,6 +20,7 @@ namespace GUI_MIDI
         public bool showlables;
         public bool errorState;
         public bool hlButtons;
+        public bool loadCompleted;
         
         public PadButton[] buttons;
         Settings settings;
